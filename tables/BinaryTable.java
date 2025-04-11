@@ -15,7 +15,5 @@ import java.util.HexFormat;
 import java.util.Iterator;
 import java.util.List;
 
-
-
-public class BinaryTable implements FileTable {
-}
+// public class BinaryTable implements FileTable {
+// }
