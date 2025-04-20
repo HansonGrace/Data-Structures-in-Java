@@ -10,150 +10,321 @@ import model.DataTable;
 import model.Row;
 import model.Table;
 
-// Psuedocode for HashTable. Not yet implemented
 
-/*
- * Class HashTable:
- * Constants:
- * SENTINEL = Row(null, null)
- * 
- * Properties:
- * name: String
- * columns: List<String>
- * rows: Array of Row
- * rowSize: Integer
- * fingerprint: Integer
- * 
- * Constructor(name: String, columns: List<String>):
- * Initialize name
- * Initialize columns
- * Initialize rows as an array of size 32
- * Initialize rowSize to 0
- * Initialize fingerprint to 0
- * 
- * Method clear():
- * Set all elements in rows to null
- * Reset rowSize to 0
- * Reset fingerprint to 0
- * 
- * Method hashFunction(key: String) -> Integer:
- * Append "Grace" to key
- * Initialize hash to 0
- * For each character in key (starting from index 1):
- * Update hash using polynomial rolling hash formula
- * Return hash mod capacity
- * 
- * Method doubleHash(key: String) -> Integer:
- * Append "Grace" to key
- * Try:
- * Get SHA-256 digest of key
- * Convert digest to an integer hash
- * Return (hash mod (capacity - 1)) + 1
- * Catch NoSuchAlgorithmException:
- * Throw runtime exception
- * 
- * Method rehash():
- * Backup current rows to a temporary array
- * Create a new rows array with double the capacity
- * Reset rowSize and fingerprint to 0
- * For each row in the temporary array:
- * If row is not null and not SENTINEL:
- * Reinsert row into the new rows array
- * 
- * Method put(key: String, fields: List<Object>) -> List<Object>:
- * If fields size is not equal to degree - 1:
- * Throw IllegalArgumentException
- * 
- * Initialize field to null
- * Compute base index (h) using hashFunction
- * Compute adjustment (c) using doubleHash
- * Initialize sentinel index to -1
- * 
- * For each j from 0 to capacity - 1:
- * Compute index i using (h + j * c) mod capacity
- * If rows[i] is SENTINEL and sentinel index is not set:
- * Set sentinel index to i
- * If rows[i] is null:
- * If sentinel index is set:
- * Replace sentinel with new row
- * Else:
- * Insert new row at rows[i]
- * Update fingerprint and rowSize
- * If load factor >= 75%:
- * Call rehash()
- * Return null
- * If rows[i] matches the key:
- * Update fingerprint by subtracting old row's hash
- * Set field to old row's fields
- * Replace old row with new row
- * Update fingerprint with new row's hash
- * Return field
- * Throw IllegalStateException
- * 
- * Method get(key: String) -> List<Object>:
- * Compute base index (h) using hashFunction
- * Compute adjustment (c) using doubleHash
- * 
- * For each j from 0 to capacity - 1:
- * Compute index i using (h + j * c) mod capacity
- * If rows[i] is null:
- * Return null
- * If rows[i] matches the key:
- * Return rows[i]'s fields
- * Throw IllegalStateException
- * 
- * Method remove(key: String) -> List<Object>:
- * Compute base index (h) using hashFunction
- * Compute adjustment (c) using doubleHash
- * 
- * For each j from 0 to capacity - 1:
- * Compute index i using (h + j * c) mod capacity
- * If rows[i] is null:
- * Return null
- * If rows[i] matches the key:
- * Update fingerprint by subtracting old row's hash
- * Set field to old row's fields
- * Replace row with SENTINEL
- * Decrease rowSize
- * Return field
- * Throw IllegalStateException
- * 
- * Method degree() -> Integer:
- * Return size of columns
- * 
- * Method size() -> Integer:
- * Return rowSize
- * 
- * Method capacity() -> Integer:
- * Return length of rows array
- * 
- * Method hashCode() -> Integer:
- * Return fingerprint
- * 
- * Method equals(obj: Object) -> Boolean:
- * Return true if obj is a Table and its hashCode matches this table's hashCode
- * 
- * Method iterator() -> Iterator<Row>:
- * Create an iterator with:
- * Property index initialized to 0
- * Method hasNext():
- * While index is within bounds and rows[index] is null or SENTINEL:
- * Increment index
- * Return true if index is within bounds
- * Method next():
- * If hasNext() is false:
- * Throw UnsupportedOperationException
- * Return rows[index] and increment index
- * 
- * Method name() -> String:
- * Return name
- * 
- * Method columns() -> List<String>:
- * Return columns
- * 
- * Method toString() -> String:
- * Return result of toPrettyString()
- * 
- * 
- * 
- */
+public class HashTable implements DataTable {
+	private static final Row SENTINEL = new Row(null,null);
+	private String name;
+	private List<String> columns;
+	private Row[] rows;
+	private int rowSize;
+	private int fingerprint;
+	
+	//store table name and column names
+	//initialize data structure
+	public HashTable(String name, List<String> columns) {
+		this.name = name;
+		this.columns = columns;
+		this.rows = new Row[32];
+		this.rowSize = 0;
+		this.fingerprint= 0;	}
+
+	//reinitialize data structure
+	@Override
+	public void clear() {
+		Arrays.fill(this.rows, null);
+		this.rowSize = 0;
+		this.fingerprint = 0;
+	}
+
+	//salt the given key with your own name
+	//use polynomial rolling hash function with range 1 to capacity -1
+	private int hashFunction(String key) {
+		int hash = 0;
+		key += "Grace";
+		for (int i = 1; i < key.length(); i++)
+		{
+			hash = 31 * hash + key.charAt(i);
+		}
+		//hash mod capacity
+		//remember % doesn't work right when the hash before modding is negative
+		//use Math.floorMod method instead
+		return Math.floorMod(hash, this.capacity());
+	}
+	
+	//salt given key with your own name
+	//use SHA-256 function with range 1 to capacity - 1
+	//must not return 0 (or anything that would mod to 0)
+	private int doubleHash(String key){
+		key += "Grace";
+		try {
+			//get the SHA-256 method from MessageDigest
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			
+			//turn key into a byte array
+			byte[] encodedHash = digest.digest(key.getBytes());
+			
+			//convert the byte array into an integer
+			int hash = 0;
+			for (byte b : encodedHash)
+			{
+				hash = (hash << 8) + (b & 0xFF);
+			}
+			
+			//return the modded hash 
+			return Math.floorMod(hash,this.capacity()-1) +1;
+		}
+		//if SHA-256 is not available throw runtime exception
+		catch (NoSuchAlgorithmException e){
+			throw new RuntimeException(e);
+		}
+	}
+	
+	//Expand the capacity to approximately double.
+	//Rehash each row.
+	private void rehash()
+	{
+		//let backup/copy reference = old array reference
+		Row[] temp = this.rows;
+		//reassign table array ref = new larger empty array
+		this.rows = new Row[this.capacity() * 2];
+		//reinitialize size/fingerprint
+		rowSize = 0;
+		fingerprint = 0;
+		//for each index in the backup/copy, check for hit or miss and update
+		for (Row r : temp)
+		{
+			//on a hit
+			if (r != null && r != SENTINEL)
+			{
+				//put in new array of rows
+				put(r.key(), r.fields());
+			}
+		}
+	}
+
+	//Define a guard condition for an invalid key.
+	//Define a guard condition for fields which are too wide or narrow.
+	//On a hit, update the old row, then return the old list of fields.
+	//On a miss, create the new row by replacing a sentinel (if possible) and check for rehash, then return null.
+	//When the load factor reaches 75%, call the rehash method.
+	@Override
+	public List<Object> put(String key, List<Object> fields) {
+		//guard condition for fields
+		if (fields.size() != this.degree()-1)
+		{
+			throw new IllegalArgumentException();
+		}
+		
+		List<Object> field = null;
+		//let h be the result of hash(key), the base index
+		int h = this.hashFunction(key);
+		//let c be the result of hash2(key), the adjustment
+		int c = this.doubleHash(key);
+		//index of sentinels
+		int index = -1;
+		
+		//for each j value from 0 to capacity - 1:
+		for (int j = 0; j < this.capacity(); j++)
+		{
+			int i = Math.floorMod((h + j * c), this.capacity());
+			
+			//note down sentinel index
+			if (rows[i] == SENTINEL && index != -1)
+			{
+				index = i;
+			}
+			
+			//check for miss
+			if (rows[i] == null)
+			{
+				//if there was a sentinel found, go to that index
+				if (index != -1)
+				{
+					//replace sentinel with new row
+					rows[index] = new Row(key,fields);
+				}
+				else
+				{
+					//create new row on miss
+					rows[i] = new Row(key, fields);
+					
+				}
+				//increase fingerprint
+				fingerprint += rows[i].hashCode();
+				//increase row size
+				rowSize++;
+				
+				//rehash at 75% load factor
+				if (rowSize >= this.capacity() * 0.75)
+				{
+					rehash();
+				}
+				
+				//return null;
+				return null;
+			}
+			//hit
+			if (rows[i].key() == key)
+			{
+				//decrease fingerprint by OLD row's hash
+				fingerprint -= rows[i].hashCode();
+				//set field equal to OLD row's fields to return
+				field = rows[i].fields();
+				//update key's fields
+				rows[i] = new Row(key, fields);
+				//increase fingerprint by NEW row's hash
+				fingerprint += rows[i].hashCode();
+				//return old row's fields
+				return field;
+			}
+		}
+		//unexpected fall-through
+		throw new IllegalStateException();
+	}
+	
+	//on a hit, return the old list of fields
+	//on a miss, return null
+	@Override
+	public List<Object> get(String key) {
+		int h = this.hashFunction(key);
+		int c = this.doubleHash(key);
+		
+		//Searches for the key
+		for (int j = 0; j < this.capacity(); j++)
+		{
+			int i = Math.floorMod((h + j * c), this.capacity());
+			//check for miss
+			if (rows[i] == null)
+			{
+				return null;
+			}
+			
+			//hit
+			if (rows[i].key() == key)
+			{
+				//return row's fields
+				return rows[i].fields();
+			}
+		}
+		//unexpected fall-through
+		throw new IllegalStateException();
+	}
+
+	/*On a hit, delete the old row by replacing it with a sentinel (like a
+	row with null components), then return the old list of fields */
+	//On a miss return null
+	@Override
+	public List<Object> remove(String key) {
+		List<Object> field = null;
+		int h = this.hashFunction(key);
+		int c = this.doubleHash(key);
+		
+		//search for key
+		for (int j = 0; j < this.capacity(); j++)
+		{
+			int i = Math.floorMod((h + j * c),this.capacity());
+			
+			//miss
+			if (rows[i] == null)
+			{
+				return null;
+			}
+			
+			//hit
+			if (rows[i].key() == key)
+			{
+				//decrease fingerprint by OLD row's hash
+				fingerprint -= rows[i].hashCode();
+				//set field equal to the old rows fields
+				field = rows[i].fields();
+				//set row as a sentinel
+				rows[i] = SENTINEL;
+				//decrease row size
+				rowSize--;
+
+				//return old rows fields
+				return field;
+			}
+		}
+		//unexpected fall-through
+		throw new IllegalStateException();
+	}
+
+	//total number of columns (key + fields)
+	@Override
+	public int degree() {
+		return this.columns.size();
+	}
+
+	//current number of rows amortized
+	@Override
+	public int size() {
+		return this.rowSize;
+	}
+
+	//max number of rows
+	@Override
+	public int capacity() {
+		return this.rows.length;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.fingerprint;
+	}
+
+	//defines whether the given object is a table of any type (not only the same type as this table)
+	//with the same fingerprint as this table
+	@Override
+	public boolean equals(Object obj) {
+		return (obj instanceof Table && obj.hashCode() == this.hashCode());
+	}
+
+	//Iterates over all rows in the table in arbitrary order
+	@Override
+	public Iterator<Row> iterator() {
+		return new Iterator<>() {
+			private int index = 0;
+
+			@Override
+			public boolean hasNext() {
+				//maintenance condition, accounts for the gaps
+				while (index < capacity() && (rows[index] == null || rows[index] == SENTINEL))
+				{
+					index++;
+				}
+				return index < capacity();
+			}
+
+			@Override
+			public Row next() {
+				
+				if (!hasNext())
+				{
+					throw new UnsupportedOperationException();
+				}
+				Row next = rows[index];
+				index++;
+				return next;
+			}
+		};
+	}
+
+	// table name
+	@Override
+	public String name() {
+		return this.name;
+	}
+
+	//list of column names
+	@Override
+	public List<String> columns() {
+		return this.columns;
+	}
+
+	// represent in Table.toPrettyString format
+	@Override
+	public String toString() {
+		return toPrettyString();
+	}
+}
