@@ -44,8 +44,8 @@ public class LinkedListDemo {
     }
 
     // entry point
-    public static void run() {
-        Scanner scanner = new Scanner(System.in);
+    public static void run(java.util.Scanner scanner) {
+
         LinkedListDemo list = new LinkedListDemo();
 
         System.out.println("Welcome to the Linked List Demonstration!");
