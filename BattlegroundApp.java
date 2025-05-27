@@ -8,7 +8,7 @@ public class BattlegroundApp {
 
         do {
             System.out.println("=====================================");
-            System.out.println("       DataStructure Battlegrounds ");
+            System.out.println("       DataStructure Battlegrounds \n        Created by: Grace Hanson");
             System.out.println("=====================================");
             System.out.println("Select a data structure to explore:");
             System.out.println("1. Hashtable");
