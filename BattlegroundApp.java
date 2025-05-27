@@ -45,6 +45,7 @@ public class BattlegroundApp {
                     break;
                 case "6":
                     System.out.println("You selected: Stack");
+                    StackDemo.run(scanner);
                     break;
                 case "7":
                     System.out.println("You selected: Queue");
