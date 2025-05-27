@@ -48,7 +48,7 @@ public class LinkedListDemo {
 
         LinkedListDemo list = new LinkedListDemo();
 
-        System.out.println("Welcome to the Linked List Demonstration!");
+        System.out.println("========= Welcome to the Linked List Demonstration! ========= ");
         System.out.println("A linked list is great for inserting/removing elements efficiently at any position.");
         System.out
                 .println("Unlike arrays, they don't need to shift elements or allocate fixed memory ahead of time!\n");
