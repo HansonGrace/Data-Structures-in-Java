@@ -73,7 +73,9 @@ public class MainMenu extends MouseAdapter implements Screen {
             app.setScreen(new SortingVisualizer(app, new BubbleSort()));
         } else if (mergeButton.contains(p)) {
             app.setScreen(new SortingVisualizer(app, new MergeSort()));
-        } 
+        } else if (insertionButton.contains(p)) {
+            app.setScreen(new SortingVisualizer(app, new InsertionSort()));
+        }
     }
 
     @Override

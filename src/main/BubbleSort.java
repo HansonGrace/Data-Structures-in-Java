@@ -1,9 +1,14 @@
 package main;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.*;
+
 public class BubbleSort implements SortStrategy {
 
 	@Override
 	public void sort(int[] array, Runnable repaintCallback) throws InterruptedException {
+		
 		
 		int n = array.length;
 		boolean swapped;

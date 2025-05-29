@@ -50,15 +50,17 @@ public class SortingVisualizer implements Screen {
     public void render(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, MainApp.WIDTH, MainApp.HEIGHT);
+        
+       
 
         for (int i = 0; i < array.length; i++) {
             int height = array[i];
-            g.setColor(Color.CYAN);
+            g.setColor(Color.ORANGE);
             g.fillRect(i * (MainApp.WIDTH / array.length), MainApp.HEIGHT - height, (MainApp.WIDTH / array.length) - 2, height);
         }
 
         if (sorted) {
-            g.setColor(Color.GREEN);
+            g.setColor(Color.WHITE);
             g.setFont(new Font("Monospaced", Font.BOLD, 18));
             g.drawString("Sorted!", 350, 50);
         }
