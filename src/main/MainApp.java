@@ -44,7 +44,7 @@ public class MainApp extends Canvas implements Runnable {
             bs.show();
 
             try {
-                Thread.sleep(20); // about 60 FPS
+                Thread.sleep(80); // about 60 FPS
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

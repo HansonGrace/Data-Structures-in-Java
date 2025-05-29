@@ -7,62 +7,63 @@ import java.awt.event.MouseEvent;
 public class MainMenu extends MouseAdapter implements Screen {
     private MainApp app;
 
-    private Rectangle bubbleButton = new Rectangle(300, 300, 200, 40);
-    private Rectangle mergeButton = new Rectangle(300, 360, 200, 40);
-    private Rectangle insertionButton = new Rectangle(300, 420, 200, 40);
-
-    private boolean hoverBubble = false;
-    private boolean hoverMerge = false;
-    private boolean hoverInsertion = false;
+    private Rectangle bubbleButton, mergeButton, insertionButton, selectionButton, quickButton, gnomeButton;
 
     public MainMenu(MainApp app) {
         this.app = app;
+        bubbleButton = new Rectangle(300, 220, 200, 35);
+        mergeButton = new Rectangle(300, 270, 200, 35);
+        insertionButton = new Rectangle(300, 320, 200, 35);
+        selectionButton = new Rectangle(300, 370, 200, 35);
+        quickButton = new Rectangle(300, 420, 200, 35);
+        gnomeButton = new Rectangle(300, 470, 200, 35);
         app.addMouseListener(this);
-        app.addMouseMotionListener(this);
     }
 
     @Override
     public void update() {
-        // No-op
+        // no-op
     }
 
     @Override
     public void render(Graphics g) {
-        // Background
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, MainApp.WIDTH, MainApp.HEIGHT);
 
-        // Title
+        // Title (kept white as requested)
         g.setColor(Color.WHITE);
         g.setFont(new Font("Monospaced", Font.BOLD, 36));
         String title = "SORTING BATTLE GROUND";
         int titleWidth = g.getFontMetrics().stringWidth(title);
         g.drawString(title, (MainApp.WIDTH - titleWidth) / 2, 100);
 
-        // Author name just below the title
+        // Author credit
         g.setFont(new Font("Monospaced", Font.PLAIN, 14));
         String credit = "Created by Grace Hanson";
         int creditWidth = g.getFontMetrics().stringWidth(credit);
         g.setColor(Color.LIGHT_GRAY);
         g.drawString(credit, (MainApp.WIDTH - creditWidth) / 2, 130);
 
-        // Sort buttons with hover effects
+        // Buttons
         g.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        Point p = MouseInfo.getPointerInfo().getLocation();
 
-        g.setColor(hoverBubble ? Color.WHITE : Color.LIGHT_GRAY);
-        g.fillRect(bubbleButton.x, bubbleButton.y, bubbleButton.width, bubbleButton.height);
+        drawButton(g, bubbleButton, "Bubble Sort", p);
+        drawButton(g, mergeButton, "Merge Sort", p);
+        drawButton(g, insertionButton, "Insertion Sort", p);
+        drawButton(g, selectionButton, "Selection Sort", p);
+        drawButton(g, quickButton, "Quick Sort", p);
+        drawButton(g, gnomeButton, "Gnome Sort", p);
+    }
 
-        g.setColor(hoverMerge ? Color.WHITE : Color.LIGHT_GRAY);
-        g.fillRect(mergeButton.x, mergeButton.y, mergeButton.width, mergeButton.height);
+    private void drawButton(Graphics g, Rectangle button, String text, Point p) {
+        Point frameOffset = app.getLocationOnScreen();
+        Point relative = new Point(p.x - frameOffset.x, p.y - frameOffset.y);
 
-        g.setColor(hoverInsertion ? Color.WHITE : Color.LIGHT_GRAY);
-        g.fillRect(insertionButton.x, insertionButton.y, insertionButton.width, insertionButton.height);
-
-        // Button labels
+        g.setColor(button.contains(relative) ? Color.WHITE : Color.LIGHT_GRAY);
+        g.fillRect(button.x, button.y, button.width, button.height);
         g.setColor(Color.BLACK);
-        g.drawString("Bubble Sort", bubbleButton.x + 45, bubbleButton.y + 25);
-        g.drawString("Merge Sort", mergeButton.x + 50, mergeButton.y + 25);
-        g.drawString("Insertion Sort", insertionButton.x + 40, insertionButton.y + 25);
+        g.drawString(text, button.x + 35, button.y + 23);
     }
 
     @Override
@@ -75,21 +76,7 @@ public class MainMenu extends MouseAdapter implements Screen {
             app.setScreen(new SortingVisualizer(app, new MergeSort()));
         } else if (insertionButton.contains(p)) {
             app.setScreen(new SortingVisualizer(app, new InsertionSort()));
-        }
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        Point p = e.getPoint();
-
-        hoverBubble = bubbleButton.contains(p);
-        hoverMerge = mergeButton.contains(p);
-        hoverInsertion = insertionButton.contains(p);
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        // Not used
-    }
+        }     }
 }
+
 

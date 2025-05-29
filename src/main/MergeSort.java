@@ -1,66 +1,68 @@
 package main;
 
+import java.util.function.IntConsumer;
+
 public class MergeSort implements SortStrategy {
 
     @Override
-    public void sort(int[] array, Runnable repaintCallback) throws InterruptedException {
-        mergeSort(array, 0, array.length - 1, repaintCallback);
+    public void sort(int[] array, Runnable repaintCallback, IntConsumer playNote) throws InterruptedException {
+        mergeSort(array, 0, array.length - 1, repaintCallback, playNote);
     }
 
-    private void mergeSort(int[] array, int left, int right, Runnable repaintCallback) throws InterruptedException {
+    private void mergeSort(int[] array, int left, int right, Runnable repaintCallback, IntConsumer playNote) throws InterruptedException {
         if (left < right) {
-            int middle = (left + right) / 2;
+            int mid = (left + right) / 2;
 
-            // Sort left half
-            mergeSort(array, left, middle, repaintCallback);
-
-            // Sort right half
-            mergeSort(array, middle + 1, right, repaintCallback);
-
-            // Merge the two halves
-            merge(array, left, middle, right, repaintCallback);
+            mergeSort(array, left, mid, repaintCallback, playNote);
+            mergeSort(array, mid + 1, right, repaintCallback, playNote);
+            merge(array, left, mid, right, repaintCallback, playNote);
         }
     }
 
-    private void merge(int[] array, int left, int middle, int right, Runnable repaintCallback) throws InterruptedException {
-        int n1 = middle - left + 1;
-        int n2 = right - middle;
+    private void merge(int[] array, int left, int mid, int right, Runnable repaintCallback, IntConsumer playNote) throws InterruptedException {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
 
-        int[] leftArr = new int[n1];
-        int[] rightArr = new int[n2];
+        int[] L = new int[n1];
+        int[] R = new int[n2];
 
-        // Copy data into temp arrays
-        for (int i = 0; i < n1; i++) leftArr[i] = array[left + i];
-        for (int j = 0; j < n2; j++) rightArr[j] = array[middle + 1 + j];
+        // Copy data
+        for (int i = 0; i < n1; ++i)
+            L[i] = array[left + i];
+        for (int j = 0; j < n2; ++j)
+            R[j] = array[mid + 1 + j];
 
-        int i = 0, j = 0;
-        int k = left;
+        int i = 0, j = 0, k = left;
 
-        // Merge the arrays back into array[left...right]
+        // Merge the temp arrays
         while (i < n1 && j < n2) {
-            if (leftArr[i] <= rightArr[j]) {
-                array[k] = leftArr[i++];
+            if (L[i] <= R[j]) {
+                array[k] = L[i++];
             } else {
-                array[k] = rightArr[j++];
+                array[k] = R[j++];
             }
             repaintCallback.run();
+            playNote.accept(array[k]);
             Thread.sleep(10);
             k++;
         }
 
-        // Copy remaining elements of leftArr[]
+        // Copy remaining elements of L[]
         while (i < n1) {
-            array[k++] = leftArr[i++];
+            array[k] = L[i++];
             repaintCallback.run();
+            playNote.accept(array[k]);
             Thread.sleep(10);
+            k++;
         }
 
-        // Copy remaining elements of rightArr[]
+        // Copy remaining elements of R[]
         while (j < n2) {
-            array[k++] = rightArr[j++];
+            array[k] = R[j++];
             repaintCallback.run();
+            playNote.accept(array[k]);
             Thread.sleep(10);
+            k++;
         }
     }
 }
-
